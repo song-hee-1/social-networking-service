@@ -16,12 +16,15 @@ class HashtagSerializer(serializers.ModelSerializer):
 
 # 게시글 목록
 class PostingListSerializer(serializers.ModelSerializer):
-    like_num = serializers.ReadOnlyField(source='like.like_num')
+    like_num = serializers.SerializerMethodField()
     hashtag = HashtagSerializer(many=True)
 
     class Meta:
         model = Posting
         fields = ['title', 'user_id', 'hashtag', 'create_time', 'like_num', 'hits']
+
+    def get_like_num(self, instance):
+        return instance.likes.count()
 
 
 # 게시글 생성
@@ -51,6 +54,11 @@ class PostingCreateSerializer(serializers.ModelSerializer):
 
 # 게시글 상세보기
 class PostingDetailSerializer(serializers.ModelSerializer):
+    like_num = serializers.SerializerMethodField()
+
     class Meta:
         model = Posting
         fields = '__all__'
+
+    def get_like_num(self, instance):
+        return instance.likes.count()

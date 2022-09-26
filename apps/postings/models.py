@@ -32,7 +32,7 @@ class Posting(models.Model):
 class Like(models.Model):
     user_id = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, db_column="user_id", null=True)
     post_id = models.ForeignKey("Posting", on_delete=models.CASCADE, db_column="post_id")
-    like_num = models.PositiveIntegerField(verbose_name="좋아요 수")
+    # like_num = models.PositiveIntegerField(verbose_name="좋아요 수")
     create_time = models.DateTimeField(auto_now_add=True, verbose_name="좋아요 한 날짜")
 
     class Meta:
