@@ -50,6 +50,13 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # Local apps
+    'apps.accounts.apps.AccountsConfig',
+    'apps.postings.apps.PostingsConfig',
+
+    # Third pary apps
+    'rest_framework',
+
     # Django apps
     'django.contrib.admin',
     'django.contrib.auth',
