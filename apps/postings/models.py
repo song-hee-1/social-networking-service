@@ -36,13 +36,12 @@ class Like(models.Model):
     create_time = models.DateTimeField(auto_now_add=True, verbose_name="좋아요 한 날짜")
 
     class Meta:
-        unique_together = ('user_id', 'post_id')
         verbose_name = "좋아요"
         verbose_name_plural = "좋아요 목록"
         db_table = 'like'
 
     def __str__(self):
-        return self.post_id
+        return str(self.post_id)
 
 
 class Hashtag(models.Model):

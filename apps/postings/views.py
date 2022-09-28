@@ -1,12 +1,15 @@
+from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.decorators import action
 
-from apps.postings.models import Posting
-from apps.postings.serializers import PostingListSerializer, PostingCreateSerializer, PostingDetailSerializer
+from apps.postings.models import Posting, Like
+from apps.postings.serializers import PostingListSerializer, PostingCreateSerializer, PostingDetailSerializer, \
+    PostingLikeSerializer
 
 
 class PostingSetPagination(PageNumberPagination):
@@ -49,7 +52,7 @@ class PostingViewSet(viewsets.ModelViewSet):
             return PostingCreateSerializer
         if self.action == "retrieve":
             return PostingDetailSerializer
-        return PostingListSerializer
+        return PostingDetailSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -60,3 +63,26 @@ class PostingViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user_id=self.request.user)
+
+    @action(detail=True, methods=['put'])
+    def likes(self, request, pk=None):
+        """각 게시글에 좋아요하는 endpoint"""
+
+        user = request.user
+
+        data = {
+            'post_id': pk,
+            'user_id': self.request.user.id
+        }
+
+        serializer = PostingLikeSerializer(data=data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+
+        like_object = Like.objects.filter(user_id=user, post_id=pk)
+
+        if not like_object.exists():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            like_object.delete()
+            return Response('좋아요가 취소되었습니다', status=status.HTTP_202_ACCEPTED)

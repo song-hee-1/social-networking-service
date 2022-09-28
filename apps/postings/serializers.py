@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.postings.models import Posting, Hashtag
+from apps.postings.models import Posting, Hashtag, Like
 
 
 # 해시태그
@@ -62,3 +62,10 @@ class PostingDetailSerializer(serializers.ModelSerializer):
 
     def get_like_num(self, instance):
         return instance.likes.count()
+
+
+# 좋아요
+class PostingLikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        exclude = ['create_time']
