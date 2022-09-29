@@ -69,3 +69,10 @@ class PostingLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
         exclude = ['create_time']
+
+
+# 삭제된 게시글 복구
+class PostingRestoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Posting
+        fields = ['id', 'user_id']

@@ -13,7 +13,7 @@ from rest_framework.decorators import action
 
 from apps.postings.models import Posting, Like
 from apps.postings.serializers import PostingListSerializer, PostingCreateSerializer, PostingDetailSerializer, \
-    PostingLikeSerializer
+    PostingLikeSerializer, PostingRestoreSerializer
 
 
 class PostingSetPagination(PageNumberPagination):
@@ -26,7 +26,7 @@ class PostingViewSet(viewsets.ModelViewSet):
     pagination_class = PostingSetPagination
 
     def get_queryset(self):
-        queryset = Posting.objects.prefetch_related('hashtag').all()
+        queryset = Posting.objects.prefetch_related('hashtag').all().filter(is_delete=0)
         search_condition = self.request.GET.get('search', None)
         hashtag_condition = self.request.GET.get('hashtags', None)
         ordering = self.request.GET.get('ordering', '-create_time')
@@ -104,6 +104,18 @@ class PostingViewSet(viewsets.ModelViewSet):
 
         return response
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if instance.user_id != request.user:
+            return Response('ERROR : 게시글에 대한 접근 권한이 없습니다.', status=status.HTTP_400_BAD_REQUEST)
+        else:
+            self.perform_destroy(instance)
+            return Response('delete : 성공적으로 삭제되었습니다.', status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        instance.is_delete = True
+        instance.save()
 
     @action(detail=True, methods=['put'])
     def likes(self, request, pk=None):
@@ -113,7 +125,7 @@ class PostingViewSet(viewsets.ModelViewSet):
 
         data = {
             'post_id': pk,
-            'user_id': self.request.user.id
+            'user_id': user.id
         }
 
         serializer = PostingLikeSerializer(data=data, context={'request': request})
@@ -127,3 +139,30 @@ class PostingViewSet(viewsets.ModelViewSet):
         else:
             like_object.delete()
             return Response('좋아요가 취소되었습니다', status=status.HTTP_202_ACCEPTED)
+
+
+    @action(detail=True, methods=['put'])
+    def restores(self, request, pk=None):
+        """게시글의 작성자만 삭제된 게시글을 복구할 수 있는 endpoint"""
+
+        user = request.user
+        posting_instance = get_object_or_404(Posting, pk=pk)
+
+        data = {
+            'id': pk,
+            'user_id': user.id
+        }
+
+        serializer = PostingRestoreSerializer(data=data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+
+        if posting_instance.user_id != user:
+            return Response('ERROR : 게시글에 대한 접근 권한이 없습니다.', status=status.HTTP_400_BAD_REQUEST)
+        else:
+            if posting_instance.is_delete == 1:
+                posting_instance.is_delete = 0
+                posting_instance.save()
+                return Response('RESTORE : 게시글을 성공적으로 복구하였습니다.', status=status.HTTP_200_OK)
+            else:
+                return Response('ERROR : 이미 처리된 게시글입니다.', status=status.HTTP_400_BAD_REQUEST)
+
