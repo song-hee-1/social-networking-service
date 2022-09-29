@@ -1,5 +1,9 @@
+import datetime
+
+from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from django.db.models import Q
+from django.db.models import Q, F
+from django.db import transaction
 
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -64,12 +68,42 @@ class PostingViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user_id=self.request.user)
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.hits += 1
-        instance.save()
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        instance = get_object_or_404(self.get_queryset(), pk=pk)
+
+        # 상세보기시 단순 조회수 증가
+        # instance.hits += 1
+        # instance.save()
+
+        # 쿠키를 이용한 중복 조회수 방지 : 매일 자정에 쿠기 초기화
+        tomorrow = datetime.datetime.replace(timezone.datetime.now(), hour=23, minute=59, second=0)
+        expires = datetime.datetime.strftime(tomorrow, "%a, %d-%b-%y %H:%M:%S GMT")
+
         serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        response = Response(serializer.data, status=status.HTTP_200_OK)
+
+        # 쿠키 읽기 & 생성
+        if request.COOKIES.get('hits') is not None:  # 쿠키가 있을 경우
+            cookies = request.COOKIES.get('hits')
+            cookies_list = cookies.split('|')
+            if str(pk) not in cookies_list: # 쿠키에 현재 게시글물이 없을 경우(게시물을 처음 조회 했을 경우)
+                with transaction.atomic():
+                    response.set_cookie('hits', cookies + f'|{pk}', expires=expires)
+                    instance.hits += 1
+                    instance.save()
+                    return response
+
+        else:  # 쿠키가 없을 경우
+            response.set_cookie('hits', pk, expires=expires) # hits란 이름의 쿠키와 pk를 value로 저장
+            instance.hits += 1
+            instance.save()
+            return response
+
+        serializer = self.get_serializer(instance)
+        response = Response(serializer.data, status=status.HTTP_200_OK)
+
+        return response
+
 
     @action(detail=True, methods=['put'])
     def likes(self, request, pk=None):
