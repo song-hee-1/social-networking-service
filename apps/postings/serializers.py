@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.postings.models import Posting, Hashtag, Like
+from apps.postings.validators import validate_hashtag_name
 
 
 # 해시태그
@@ -10,7 +11,7 @@ class HashtagSerializer(serializers.ModelSerializer):
         fields = ['name']
         extra_kwargs = {
             'id': {'read_only': True},
-            'name': {'validators': []},  # 중복된 hashtag도 허용하기 위해서 validator 제거
+            'name': {'validators': [validate_hashtag_name]},  # 중복된 hashtag도 허용하기 위해서 validator 제거
         }
 
 
