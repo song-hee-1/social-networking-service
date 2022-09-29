@@ -2,7 +2,7 @@ import datetime
 
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from django.db.models import Q, F
+from django.db.models import Q
 from django.db import transaction
 
 from rest_framework import viewsets, status
@@ -14,6 +14,7 @@ from rest_framework.decorators import action
 from apps.postings.models import Posting, Like
 from apps.postings.serializers import PostingListSerializer, PostingCreateSerializer, PostingDetailSerializer, \
     PostingLikeSerializer, PostingRestoreSerializer
+from apps.postings.permissions import AuthorAndStaffAllEditOrReadOnly
 
 
 class PostingSetPagination(PageNumberPagination):
@@ -23,6 +24,9 @@ class PostingSetPagination(PageNumberPagination):
 
 
 class PostingViewSet(viewsets.ModelViewSet):
+
+    permission_classes = [AuthorAndStaffAllEditOrReadOnly]
+
     pagination_class = PostingSetPagination
 
     def get_queryset(self):
@@ -104,15 +108,6 @@ class PostingViewSet(viewsets.ModelViewSet):
 
         return response
 
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-
-        if instance.user_id != request.user:
-            return Response('ERROR : 게시글에 대한 접근 권한이 없습니다.', status=status.HTTP_400_BAD_REQUEST)
-        else:
-            self.perform_destroy(instance)
-            return Response('delete : 성공적으로 삭제되었습니다.', status=status.HTTP_204_NO_CONTENT)
-
     def perform_destroy(self, instance):
         instance.is_delete = True
         instance.save()
@@ -140,7 +135,6 @@ class PostingViewSet(viewsets.ModelViewSet):
             like_object.delete()
             return Response('좋아요가 취소되었습니다', status=status.HTTP_202_ACCEPTED)
 
-
     @action(detail=True, methods=['put'])
     def restores(self, request, pk=None):
         """게시글의 작성자만 삭제된 게시글을 복구할 수 있는 endpoint"""
@@ -165,4 +159,3 @@ class PostingViewSet(viewsets.ModelViewSet):
                 return Response('RESTORE : 게시글을 성공적으로 복구하였습니다.', status=status.HTTP_200_OK)
             else:
                 return Response('ERROR : 이미 처리된 게시글입니다.', status=status.HTTP_400_BAD_REQUEST)
-
