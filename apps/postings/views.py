@@ -64,6 +64,13 @@ class PostingViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user_id=self.request.user)
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.hits += 1
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
     @action(detail=True, methods=['put'])
     def likes(self, request, pk=None):
         """각 게시글에 좋아요하는 endpoint"""
