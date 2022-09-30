@@ -44,7 +44,7 @@ class PostingViewSet(viewsets.ModelViewSet):
 
             if hashtag_condition:
                 for tag in hashtag_condition:
-                    queryset = queryset.filter(hashtag__name=tag)
+                    queryset = queryset.filter(hashtag__name="#"+tag)
             return queryset
 
         except Exception as e:
