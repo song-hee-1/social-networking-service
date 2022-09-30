@@ -24,7 +24,6 @@ class PostingSetPagination(PageNumberPagination):
 
 
 class PostingViewSet(viewsets.ModelViewSet):
-
     permission_classes = [AuthorAndStaffAllEditOrReadOnly]
 
     pagination_class = PostingSetPagination
@@ -32,7 +31,7 @@ class PostingViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Posting.objects.prefetch_related('hashtag').all().filter(is_delete=0)
         search_condition = self.request.GET.get('search', None)
-        hashtag_condition = self.request.GET.get('hashtags', None)
+        hashtag_condition = self.request.GET.getlist('hashtags', None)
         ordering = self.request.GET.get('ordering', '-create_time')
 
         try:
@@ -41,13 +40,11 @@ class PostingViewSet(viewsets.ModelViewSet):
             if search_condition:
                 q.add(Q(title__contains=search_condition), q.AND)
 
-            if hashtag_condition:
-                q_hashtag = Q()
-                for tag in hashtag_condition.split(','):
-                    q_hashtag.add(Q(hashtag__name=tag), q_hashtag.OR)
-                q.add(q_hashtag, q.AND)
-
             queryset = queryset.filter(q).distinct().order_by(ordering)
+
+            if hashtag_condition:
+                for tag in hashtag_condition:
+                    queryset = queryset.filter(hashtag__name=tag)
             return queryset
 
         except Exception as e:
@@ -90,7 +87,7 @@ class PostingViewSet(viewsets.ModelViewSet):
         if request.COOKIES.get('hits') is not None:  # 쿠키가 있을 경우
             cookies = request.COOKIES.get('hits')
             cookies_list = cookies.split('|')
-            if str(pk) not in cookies_list: # 쿠키에 현재 게시글물이 없을 경우(게시물을 처음 조회 했을 경우)
+            if str(pk) not in cookies_list:  # 쿠키에 현재 게시글물이 없을 경우(게시물을 처음 조회 했을 경우)
                 with transaction.atomic():
                     response.set_cookie('hits', cookies + f'|{pk}', expires=expires)
                     instance.hits += 1
@@ -98,7 +95,7 @@ class PostingViewSet(viewsets.ModelViewSet):
                     return response
 
         else:  # 쿠키가 없을 경우
-            response.set_cookie('hits', pk, expires=expires) # hits란 이름의 쿠키와 pk를 value로 저장
+            response.set_cookie('hits', pk, expires=expires)  # hits란 이름의 쿠키와 pk를 value로 저장
             instance.hits += 1
             instance.save()
             return response
