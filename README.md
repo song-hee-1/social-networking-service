@@ -169,22 +169,22 @@ Framework, Dj Rest Auth, Django Allauth, Djangorestframework Simplejwt
 URL|Method|Action|Description|
 |------|---|---|---|
 |api/accounts/users|GET|List|사용자 전체 목록 조회|
-|api/accounts/users/int:pk|GET|Retrieve|사용자 세부내역 조회
+|api/accounts/users/int:pk|GET|Retrieve|사용자 세부내역 조회|
 |api/accounts/users/int:pk|PUT|Update|사용자 세부내역 업데이트|
 |api/accounts/users/int:pk|PATCH|Partial_Update|사용자 세부내역 부분 업데이트|
 
 ### accounts - Dj Rest Auth
 
 URL|Method|Description|
-|------|---|---|---|
-|api/accounts/password/reset|POST|이메일을 통한 사용자 비밀번호 재설정
-|api/accounts/password/reset/confirm|POST|사용자 비밀번호 재설정 및 새로운 토큰 발급
-|api/accounts/password/change|POST|기존 비밀번호를 통해 비밀번호 재 설정
-|api/accounts/login|POST|사용자 로그인(토큰 반환)
-|api/accounts/logout|POST|사용자 로그아웃
+|------|---|---|
+|api/accounts/password/reset|POST|이메일을 통한 사용자 비밀번호 재설정|
+|api/accounts/password/reset/confirm|POST|사용자 비밀번호 재설정 및 새로운 토큰 발급|
+|api/accounts/password/change|POST|기존 비밀번호를 통해 비밀번호 재설정|
+|api/accounts/login|POST|사용자 로그인(토큰 반환)|
+|api/accounts/logout|POST|사용자 로그아웃|
 |api/accounts/token/verify|POST|토큰 유효성 확인|
-|api/accounts/token/refresh|POST|refresh 토큰을 통한 access 토큰 재발급
-|api/accounts/registration|POST|사용자 회원가입
+|api/accounts/token/refresh|POST|refresh 토큰을 통한 access 토큰 재발급|
+|api/accounts/registration|POST|사용자 회원가입|
 
 
 
