@@ -98,7 +98,8 @@
 
 - **Back-End** : Python, Django, Django REST
 Framework, Dj Rest Auth, Django Allauth, Djangorestframework Simplejwt
-- **Database** : SQLite
+- **Database** : SQLite, PostgreSQL
+- **Cloud** : Azure
 - **ETC** : Git, Github
 
 </br>
@@ -156,6 +157,13 @@ Framework, Dj Rest Auth, Django Allauth, Djangorestframework Simplejwt
 - 게시글 삭제 후 복구를 위하여 `is_delete`를 이용한 **soft delete** 구현
 	- 삭제된 게시글 복구는 @action decorator를 이용하여 복구 가능
 
+
+- 배포
+	- 서버의 유연성 위해 Azure database for postgresql flexible server 이용하여 구현 및 배포
+
+	- 현재는 비용 및 보안 상의 이유로 배포 중단
+
+	- 배포 화면 ![image](https://user-images.githubusercontent.com/83492367/198635957-ed4d01a7-e3b7-44d3-93b4-f8041f13c899.png)
 
 	
 
